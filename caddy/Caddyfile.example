@@ -15,6 +15,12 @@
 # 	reverse_proxy uptime-kuma:3001
 # }
 #
-# recipes.example.com {
-# 	reverse_proxy mealie:9000
-# }
+recipes.grantlonie.com {
+	reverse_proxy mealie:9000
+}
+
+listen.grantlonie.com {
+	reverse_proxy /api/* listen-backend:8000
+	reverse_proxy /health listen-backend:8000
+	reverse_proxy listen-frontend:80
+}

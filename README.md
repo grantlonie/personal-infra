@@ -70,6 +70,7 @@ Minimum values to set:
 - `POSTGRES_PASSWORD`
 - `MONGO_INITDB_ROOT_PASSWORD`
 - `REDIS_PASSWORD`
+- `MEALIE_POSTGRES_PASSWORD`
 - `RESTIC_REPOSITORY`
 - `RESTIC_PASSWORD`
 - S3-compatible credentials if your Restic repository uses S3
@@ -90,6 +91,13 @@ Then update the Compose mount or set `CADDYFILE_PATH=./caddy/Caddyfile` in
 docker compose pull
 docker compose up -d
 docker compose ps
+```
+
+MongoDB and Redis are optional Compose profiles and do not start by default.
+Start them only when an app needs them:
+
+```bash
+docker compose --profile mongo --profile redis up -d
 ```
 
 Databases are only exposed on the private Docker network. Do not add public
@@ -117,6 +125,74 @@ networks:
 ```
 
 Use one database and one database user per app.
+
+## Mealie
+
+This stack creates a dedicated Postgres database and user for Mealie:
+
+- database: `mealie`
+- user: `mealie`
+- password: `MEALIE_POSTGRES_PASSWORD`
+- host from app containers: `personal-infra-postgres`
+- port: `5432`
+
+Set these values in the Mealie app repository:
+
+```env
+DB_ENGINE=postgres
+POSTGRES_SERVER=personal-infra-postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=mealie
+POSTGRES_USER=mealie
+POSTGRES_PASSWORD=<same value as MEALIE_POSTGRES_PASSWORD>
+```
+
+The Mealie Compose service should join the external
+`personal-infra-shared` network and listen internally on port `9000`.
+
+Postgres only runs scripts in `postgres/init` when the data directory is first
+created. If Postgres is already initialized, run the equivalent user/database
+creation commands manually with `psql`.
+
+Expose Mealie through Caddy with the recipes subdomain:
+
+```caddyfile
+recipes.grantlonie.com {
+	reverse_proxy mealie:9000
+}
+```
+
+## Listen
+
+This stack creates a dedicated Postgres database and user for Listen:
+
+- database: `listen`
+- user: `listen`
+- password: `LISTEN_POSTGRES_PASSWORD`
+- host from app containers: `personal-infra-postgres`
+- port: `5432`
+
+Set this value in the Listen app repository:
+
+```env
+DATABASE_URL=postgresql+psycopg://listen:<same value as LISTEN_POSTGRES_PASSWORD>@personal-infra-postgres:5432/listen
+```
+
+The Listen Compose services should join the external
+`personal-infra-shared` network. Caddy should route API traffic to
+`listen-backend:8000` and frontend traffic to `listen-frontend:80`:
+
+```caddyfile
+listen.grantlonie.com {
+	reverse_proxy /api/* listen-backend:8000
+	reverse_proxy /health listen-backend:8000
+	reverse_proxy listen-frontend:80
+}
+```
+
+As with Mealie, the Postgres init script only runs when the data directory is
+first created. If Postgres is already initialized, run the equivalent
+user/database creation commands manually with `psql`.
 
 For Postgres, copy `postgres/init/01-create-app-databases.sql.example` to a
 non-example `.sql` file before the first Postgres startup, or create users and

@@ -25,22 +25,30 @@ fi
 
 mkdir -p "${POSTGRES_DUMP_DIR}" "${MONGO_DUMP_DIR}"
 
-echo "Creating Postgres logical dump..."
-docker compose exec -T postgres pg_dumpall \
-  --username "${POSTGRES_USER}" \
-  > "${POSTGRES_DUMP_DIR}/pg_dumpall-${TIMESTAMP}.sql"
+if docker compose ps --status running --services | grep -qx postgres; then
+  echo "Creating Postgres logical dump..."
+  docker compose exec -T postgres pg_dumpall \
+    --username "${POSTGRES_USER}" \
+    > "${POSTGRES_DUMP_DIR}/pg_dumpall-${TIMESTAMP}.sql"
 
-ln -sfn "pg_dumpall-${TIMESTAMP}.sql" "${POSTGRES_DUMP_DIR}/latest.sql"
+  ln -sfn "pg_dumpall-${TIMESTAMP}.sql" "${POSTGRES_DUMP_DIR}/latest.sql"
+else
+  echo "Postgres container is not running; skipping Postgres dump."
+fi
 
-echo "Creating MongoDB archive dump..."
-docker compose exec -T mongo mongodump \
-  --username "${MONGO_INITDB_ROOT_USERNAME}" \
-  --password "${MONGO_INITDB_ROOT_PASSWORD}" \
-  --authenticationDatabase admin \
-  --archive \
-  > "${MONGO_DUMP_DIR}/mongodump-${TIMESTAMP}.archive"
+if docker compose ps --status running --services | grep -qx mongo; then
+  echo "Creating MongoDB archive dump..."
+  docker compose exec -T mongo mongodump \
+    --username "${MONGO_INITDB_ROOT_USERNAME}" \
+    --password "${MONGO_INITDB_ROOT_PASSWORD}" \
+    --authenticationDatabase admin \
+    --archive \
+    > "${MONGO_DUMP_DIR}/mongodump-${TIMESTAMP}.archive"
 
-ln -sfn "mongodump-${TIMESTAMP}.archive" "${MONGO_DUMP_DIR}/latest.archive"
+  ln -sfn "mongodump-${TIMESTAMP}.archive" "${MONGO_DUMP_DIR}/latest.archive"
+else
+  echo "MongoDB container is not running; skipping MongoDB dump."
+fi
 
 echo "Running restic backup..."
 docker compose run --rm --entrypoint restic restic-backup backup \

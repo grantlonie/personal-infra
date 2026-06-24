@@ -2,10 +2,8 @@
 -- starting Postgres, or run equivalent commands manually later.
 --
 -- Each app should get its own database and user. Replace passwords before use.
-
-CREATE USER mealie WITH PASSWORD 'change-me-mealie-db-password';
-CREATE DATABASE mealie OWNER mealie;
-GRANT ALL PRIVILEGES ON DATABASE mealie TO mealie;
+-- Mealie is managed by 01-create-mealie-database.sh.
+-- Listen is managed by 02-create-listen-database.sh.
 
 CREATE USER paperless WITH PASSWORD 'change-me-paperless-db-password';
 CREATE DATABASE paperless OWNER paperless;
