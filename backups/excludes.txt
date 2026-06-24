@@ -1,0 +1,14 @@
+# Cache and temporary directories inside bind-mounted app data.
+/srv/apps/**/cache
+/srv/apps/**/tmp
+/srv/apps/**/temp
+
+# Runtime files that should be regenerated.
+*.sock
+*.pid
+
+# Avoid backing up live database data directories directly. Logical dumps under
+# /srv/backups/database-dumps are included instead.
+/srv/infra/postgres/data
+/srv/infra/mongo/data
+/srv/infra/redis/data

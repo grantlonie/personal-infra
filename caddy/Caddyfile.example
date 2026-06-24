@@ -1,0 +1,20 @@
+{
+	# Add an email here after copying this file to caddy/Caddyfile if you want
+	# Let's Encrypt expiration notices.
+	# email you@example.com
+}
+
+:80 {
+	respond "personal-infra Caddy is running"
+}
+
+# Example app route. Copy this file to caddy/Caddyfile, then replace the
+# hostname and upstream service names as you add app repositories.
+#
+# monitor.example.com {
+# 	reverse_proxy uptime-kuma:3001
+# }
+#
+# recipes.example.com {
+# 	reverse_proxy mealie:9000
+# }

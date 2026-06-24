@@ -1,0 +1,14 @@
+.env
+backups/restic.env
+caddy/Caddyfile
+
+# Local state and generated dumps
+*.log
+*.tmp
+database-dumps/
+restore/
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: personal-infra-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - /srv/infra/postgres/data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:7
+    container_name: personal-infra-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - /srv/infra/mongo/data:/data/db
+      - ./mongo/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - shared
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok' -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin | grep 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: personal-infra-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - /srv/infra/redis/data:/data
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: personal-infra-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ${CADDYFILE_PATH:-./caddy/Caddyfile.example}:/etc/caddy/Caddyfile:ro
+      - /srv/infra/caddy/data:/data
+      - /srv/infra/caddy/config:/config
+    networks:
+      - shared
+    depends_on:
+      - uptime-kuma
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: personal-infra-uptime-kuma
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - /srv/infra/uptime-kuma/data:/app/data
+    networks:
+      - shared
+
+  restic-backup:
+    image: restic/restic:latest
+    container_name: personal-infra-restic
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["sleep infinity"]
+    environment:
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-auto}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - /srv/apps:/srv/apps:ro
+      - /srv/infra:/srv/infra:ro
+      - /srv/backups/database-dumps:/srv/backups/database-dumps:ro
+      - ./backups/excludes.txt:/excludes.txt:ro
+    networks:
+      - shared
+
+networks:
+  shared:
+    name: ${SHARED_NETWORK_NAME:-personal-infra-shared}
+    driver: bridge

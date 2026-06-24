@@ -1,0 +1,12 @@
+-- Copy this file to a .sql file without the .example suffix before first
+-- starting Postgres, or run equivalent commands manually later.
+--
+-- Each app should get its own database and user. Replace passwords before use.
+
+CREATE USER mealie WITH PASSWORD 'change-me-mealie-db-password';
+CREATE DATABASE mealie OWNER mealie;
+GRANT ALL PRIVILEGES ON DATABASE mealie TO mealie;
+
+CREATE USER paperless WITH PASSWORD 'change-me-paperless-db-password';
+CREATE DATABASE paperless OWNER paperless;
+GRANT ALL PRIVILEGES ON DATABASE paperless TO paperless;

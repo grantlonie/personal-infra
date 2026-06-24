@@ -1,0 +1,11 @@
+// Copy this file to a .js file without the .example suffix before first
+// starting MongoDB, or run equivalent commands manually later.
+//
+// Each app should get its own database and user. Replace passwords before use.
+
+db = db.getSiblingDB("example_app");
+db.createUser({
+  user: "example_app",
+  pwd: "change-me-example-app-mongo-password",
+  roles: [{ role: "readWrite", db: "example_app" }],
+});
