@@ -11,7 +11,7 @@ services:
       LISTEN_POSTGRES_PASSWORD: ${LISTEN_POSTGRES_PASSWORD}
       TZ: ${TZ:-UTC}
     volumes:
-      - /srv/infra/postgres/data:/var/lib/postgresql/data
+      - ${HOST_DATA_ROOT:-/srv}/infra/postgres/data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     networks:
       - shared
@@ -31,7 +31,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       TZ: ${TZ:-UTC}
     volumes:
-      - /srv/infra/mongo/data:/data/db
+      - ${HOST_DATA_ROOT:-/srv}/infra/mongo/data:/data/db
       - ./mongo/init:/docker-entrypoint-initdb.d:ro
     networks:
       - shared
@@ -54,7 +54,7 @@ services:
     environment:
       TZ: ${TZ:-UTC}
     volumes:
-      - /srv/infra/redis/data:/data
+      - ${HOST_DATA_ROOT:-/srv}/infra/redis/data:/data
     networks:
       - shared
     healthcheck:
@@ -75,8 +75,8 @@ services:
       TZ: ${TZ:-UTC}
     volumes:
       - ${CADDYFILE_PATH:-./caddy/Caddyfile.example}:/etc/caddy/Caddyfile:ro
-      - /srv/infra/caddy/data:/data
-      - /srv/infra/caddy/config:/config
+      - ${HOST_DATA_ROOT:-/srv}/infra/caddy/data:/data
+      - ${HOST_DATA_ROOT:-/srv}/infra/caddy/config:/config
     networks:
       - shared
     depends_on:
@@ -89,7 +89,7 @@ services:
     environment:
       TZ: ${TZ:-UTC}
     volumes:
-      - /srv/infra/uptime-kuma/data:/app/data
+      - ${HOST_DATA_ROOT:-/srv}/infra/uptime-kuma/data:/app/data
     networks:
       - shared
 
@@ -107,9 +107,9 @@ services:
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-auto}
       TZ: ${TZ:-UTC}
     volumes:
-      - /srv/apps:/srv/apps:ro
-      - /srv/infra:/srv/infra:ro
-      - /srv/backups/database-dumps:/srv/backups/database-dumps:ro
+      - ${HOST_DATA_ROOT:-/srv}/apps:/srv/apps:ro
+      - ${HOST_DATA_ROOT:-/srv}/infra:/srv/infra:ro
+      - ${HOST_DATA_ROOT:-/srv}/backups/database-dumps:/srv/backups/database-dumps:ro
       - ./backups/excludes.txt:/excludes.txt:ro
     networks:
       - shared

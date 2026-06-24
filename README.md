@@ -50,11 +50,19 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-Create the host directories used by bind mounts:
+Create the host directories used by bind mounts. The Compose file uses
+`HOST_DATA_ROOT`, which defaults to `/srv`:
 
 ```bash
 sudo mkdir -p /srv/apps /srv/infra /srv/backups/database-dumps
 sudo chown -R "$USER":"$USER" /srv/apps /srv/infra /srv/backups
+```
+
+For local macOS development, set `HOST_DATA_ROOT` in `.env` to a writable
+directory under your home folder instead of using `/srv`:
+
+```env
+HOST_DATA_ROOT=/Users/you/personal-infra-data
 ```
 
 ## Configuration
@@ -67,6 +75,7 @@ cp .env.example .env
 
 Minimum values to set:
 
+- `HOST_DATA_ROOT` if you are running locally somewhere other than `/srv`
 - `POSTGRES_PASSWORD`
 - `MONGO_INITDB_ROOT_PASSWORD`
 - `REDIS_PASSWORD`
