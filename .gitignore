@@ -1,6 +1,7 @@
 .env
 backups/restic.env
 caddy/Caddyfile
+deploy.sh
 
 # Local state and generated dumps
 *.log

@@ -79,7 +79,6 @@ Minimum values to set:
 - `POSTGRES_PASSWORD`
 - `MONGO_INITDB_ROOT_PASSWORD`
 - `REDIS_PASSWORD`
-- `MEALIE_POSTGRES_PASSWORD`
 - `RESTIC_REPOSITORY`
 - `RESTIC_PASSWORD`
 - S3-compatible credentials if your Restic repository uses S3
@@ -135,39 +134,17 @@ networks:
 
 Use one database and one database user per app.
 
-## Mealie
+## Recipes
 
-This stack creates a dedicated Postgres database and user for Mealie:
+The Recipes app stores data on its own filesystem mount rather than in the
+shared Postgres service. Its Compose service should join the external
+`personal-infra-shared` network and listen internally on port `8000`.
 
-- database: `mealie`
-- user: `mealie`
-- password: `MEALIE_POSTGRES_PASSWORD`
-- host from app containers: `personal-infra-postgres`
-- port: `5432`
-
-Set these values in the Mealie app repository:
-
-```env
-DB_ENGINE=postgres
-POSTGRES_SERVER=personal-infra-postgres
-POSTGRES_PORT=5432
-POSTGRES_DB=mealie
-POSTGRES_USER=mealie
-POSTGRES_PASSWORD=<same value as MEALIE_POSTGRES_PASSWORD>
-```
-
-The Mealie Compose service should join the external
-`personal-infra-shared` network and listen internally on port `9000`.
-
-Postgres only runs scripts in `postgres/init` when the data directory is first
-created. If Postgres is already initialized, run the equivalent user/database
-creation commands manually with `psql`.
-
-Expose Mealie through Caddy with the recipes subdomain:
+Expose Recipes through Caddy with the recipes subdomain:
 
 ```caddyfile
 recipes.grantlonie.com {
-	reverse_proxy mealie:9000
+	reverse_proxy recipes:8000
 }
 ```
 
@@ -199,9 +176,9 @@ listen.grantlonie.com {
 }
 ```
 
-As with Mealie, the Postgres init script only runs when the data directory is
-first created. If Postgres is already initialized, run the equivalent
-user/database creation commands manually with `psql`.
+The Postgres init script only runs when the data directory is first created. If
+Postgres is already initialized, run the equivalent user/database creation
+commands manually with `psql`.
 
 For Postgres, copy `postgres/init/01-create-app-databases.sql.example` to a
 non-example `.sql` file before the first Postgres startup, or create users and

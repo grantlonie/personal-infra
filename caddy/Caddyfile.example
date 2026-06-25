@@ -16,7 +16,7 @@
 # }
 #
 recipes.grantlonie.com {
-	reverse_proxy mealie:9000
+	reverse_proxy recipes:8000
 }
 
 listen.grantlonie.com {

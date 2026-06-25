@@ -9,7 +9,7 @@ setting `CADDYFILE_PATH=./caddy/Caddyfile` in `.env`.
 Recommended checks:
 
 - Public HTTPS endpoints for each app.
-- Internal container endpoints where useful, such as `http://mealie:9000`.
+- Internal container endpoints where useful, such as `http://recipes:8000`.
 - Backup freshness, using a custom push monitor from your backup job.
 - Disk usage alerts from the VPS provider or a small local script.
 
